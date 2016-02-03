@@ -1,1 +1,1 @@
-"# hadoop102" 
+# Repository for Hadoop102 batch @ iXaT - KPHB, Hyderabad  
