@@ -1,0 +1,332 @@
+Create a CentOS OS
+Choose BridgeNetworking for now.
+
+####Install Required software
+yum install openssh-server openssh-clients wget zip unzip tree -y
+chkconfig sshd on
+service sshd restart
+#Disable firewall, this should be okay for local install
+service iptables save
+service iptables stop
+chkconfig iptables off
+yum update -y
+###Note the IP of the new VM (if on BridgeMode)
+ifconfig
+reboot now
+
+
+
+Login via putty from here onwards (enable port forwarding if you have choosen NAT)
+
+  
+Check for existance of Java
+   java -version
+
+   ####If you want to copy files from your host to the new VM use scp/winscp
+
+ if the above command errors out, download java from Oracle and install the same using the below set of steps, if in Lab pick the s/w from \\ixatlabmaster\IXATShare\hadoop102\HadoopForCentsOS-Setup
+    
+    ##### Start java setup steps
+    cd /opt/
+
+
+	
+	#Download Java from oracle (or) pick this from the share \\ixatlabmaster\IXATShare\hadoop102\HadoopForCentsOS-Setup
+
+	wget --no-cookies --no-check-certificate --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" "http://download.oracle.com/otn-pub/java/jdk/8u66-b17/jdk-8u66-linux-x64.tar.gz"
+
+	tar xzvf jdk-8u66-linux-x64.tar.gz  
+  	rm jdk-8u66-linux-x64.tar.gz
+    cd /opt/jdk1.8.0_66/
+    
+    alternatives --install /usr/bin/java java /opt/jdk1.8.0_66/bin/java 2
+    
+    alternatives --config java
+
+
+    alternatives --install /usr/bin/jar jar /opt/jdk1.8.0_66/bin/jar 2
+    alternatives --install /usr/bin/javac javac /opt/jdk1.8.0_66/bin/javac 2
+    alternatives --set jar /opt/jdk1.8.0_66/bin/jar
+    alternatives --set javac /opt/jdk1.8.0_66/bin/javac 
+
+
+  #Create a new user to run hadoop 
+  adduser hdtester
+  passwd hdtester
+
+  #Login as hdtester user now
+    ###### Add the below lines to ~/.bashrc
+
+    	export JAVA_HOME=/opt/jdk1.8.0_66
+    	export JRE_HOME=/opt/jdk1.8.0_66/jre
+    	export PATH=$PATH:/opt/jdk1.8.0_66/bin:/opt/jdk1.8.0_66/jre/bin
+
+
+    ##### End java setup steps
+
+
+
+
+
+
+#########download hadoop (if in lab copy from \\ixatlabmaster\IXATShare\hadoop102\HadoopForCentsOS-Setup)
+wget http://www.eu.apache.org/dist/hadoop/common/hadoop-2.7.2/hadoop-2.7.2.tar.gz
+tar xvfz hadoop-2.7.2.tar.gz
+mv hadoop-2.7.2 hadoop
+
+##########setup seemless ssh login for hdtester
+ssh-keygen -t rsa
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+chmod 0600 ~/.ssh/authorized_keys
+
+#test seemless ssh, there should be no password prompt if everything is done proper
+ssh hdtester@localhost
+
+
+####add the required environment variables in ~/.bashrc
+
+export HADOOP_HOME=/home/hdtester/hadoop
+export HADOOP_INSTALL=$HADOOP_HOME
+export HADOOP_MAPRED_HOME=$HADOOP_HOME
+export HADOOP_COMMON_HOME=$HADOOP_HOME
+export HADOOP_HDFS_HOME=$HADOOP_HOME
+export YARN_HOME=$HADOOP_HOME
+export YARN_USER=hdtester
+export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native
+export PATH=$PATH:$HADOOP_HOME/sbin:$HADOOP_HOME/bin
+
+source ~/.bashrc
+
+modify JAVA_HOME in $HADOOP_HOME/etc/hadoop/hadoop-env.sh, mapred-env.sh, yarn-env.sh 
+export JAVA_HOME=/opt/jdk1.8.0_66/ (or) to the path where JDK is available on your host
+
+
+###Login as Root user and edit /etc/hosts and enter the hostNames and corresponding IP's, you need not do this in real life because this is managed by an enterprise DNS, in the lab we would be using a DNS of router, but not everyone has access to the router admin and hence you may need to follow this step in the lab as well.
+##example /etc/hosts
+192.168.1.8    lin1
+
+
+##Edit configuration
+cd $HADOOP_HOME/etc/hadoop
+
+
+
+
+
+###$HADOOP_HOME/etc/hadoop/core-site.xml
+<configuration>
+	<property>
+		<name>fs.default.name</name>
+		<value>hdfs://lin1:8020</value>
+	</property>
+</configuration>
+
+
+##$HADOOP_HOME/etc/hadoop/hdfs-site.xml
+<configuration>
+	<property>
+		<name>dfs.replication</name>
+		<value>2</value>
+	</property>
+	<property>
+		<name>dfs.blocksize</name>
+		<value>20971520</value>
+	</property>
+	<property>
+		<name>dfs.name.dir</name>
+		<value>file:///home/hdtester/hadoopdata/hdfs/namenode</value>
+	</property>
+	<property>
+		<name>dfs.data.dir</name>
+		<value>file:///home/hdtester/hadoopdata/hdfs/datanode</value>
+	</property>
+</configuration>
+
+
+###$HADOOP_HOME/etc/hadoop/mapred-site.xml
+<configuration>
+	<property>
+		<name>mapreduce.framework.name</name>
+		<value>yarn</value>
+		<!-- or set this to local for debug needs -->
+	</property>
+</configuration>
+
+
+###$HADOOP_HOME/etc/hadoop/yarn-site.xml
+<configuration>
+	<property>
+		<name>yarn.resourcemanager.hostname</name>
+		<value>lin1</value>
+	</property>
+	<property>
+		<name>yarn.nodemanager.delete.debug-delay-sec</name>
+		<value>600</value>
+	</property>
+	<property>
+		<name>yarn.resourcemanager.address</name>
+		<value>lin1:8032</value>
+	</property>
+	<property>
+		<name>yarn.resourcemanager.webapp.address</name>
+		<value>n1:8088</value>
+	</property>
+	<property>
+		<name>yarn.nodemanager.aux-services</name>
+		<value>mapreduce_shuffle</value>
+	</property>
+	<property>
+		<name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
+		<value>org.apache.hadoop.mapred.ShuffleHandler</value>
+	</property>
+	<property>
+		<name>yarn.application.classpath</name>
+		<value>
+                    $HADOOP_CONF_DIR,
+                    $HADOOP_COMMON_HOME/share/hadoop/common/*,
+                    $HADOOP_COMMON_HOME/share/hadoop/common/lib/*,
+                    $HADOOP_HDFS_HOME/share/hadoop/hdfs/*,
+                    $HADOOP_HDFS_HOME/share/hadoop/hdfs/lib/*,
+                    $YARN_HOME/share/hadoop/yarn/*,
+                    $YARN_HOME/share/hadoop/yarn/lib/*,
+                    $YARN_HOME/share/hadoop/mapreduce/*,
+                    $YARN_HOME/share/hadoop/mapreduce/lib/*
+               </value>
+	</property>
+	<property>
+		<name>yarn.resourcemanager.bind-host</name>
+		<value>0.0.0.0</value>
+	</property>
+	<property>
+		<name>yarn.nodemanager.bind-host</name>
+		<value>0.0.0.0</value>
+	</property>
+	<property>
+		<name>yarn.timeline-service.bind-host</name>
+		<value>0.0.0.0</value>
+	</property>
+	<property>
+		<name>yarn.log-aggregation-enable</name>
+		<value>true</value>
+	</property>
+	<property>
+		<name>yarn.nodemanager.remote-app-log-dir</name>
+		<value>/app-logs</value>
+	</property>
+	<property>
+		<name>yarn.nodemanager.remote-app-log-dir-suffix</name>
+		<value>logs</value>
+	</property>
+	<property>
+		<name>yarn.log.server.url</name>
+		<value>http://lin1:19888/jobhistory/logs</value>
+	</property>
+</configuration>
+
+
+
+
+###modify  $HADOOP_HOME/etc/hadoop/slaves and enter the host name
+
+#############Total 5 Hadoop conf files have been modified
+
+#format NN
+hdfs namenode -format
+
+#start dfs
+start-dfs.sh
+
+#start yarn
+start-yarn.sh
+
+
+#start history server
+mr-jobhistory-daemon.sh start historyserver
+
+########Type jps, you should see a minimum of 6 processes
+[hdtester@xyz ~]$ jps
+1840 SecondaryNameNode
+1680 DataNode
+3141 ResourceManager
+3240 NodeManager
+1561 NameNode
+3593 JobHistoryServer
+3626 Jps
+
+
+#stop history server
+mr-jobhistory-daemon.sh stop historyserver
+##stop yarn
+stop-yarn.sh
+##stop dfs
+stop-dfs.sh
+########Type jps, you should see no java processes
+
+----start all the processes
+
+
+----test your setup
+1. create a text file with some content
+2. put that text file into hdfs under / as /test.txt
+3. run a sample MR program that ships with hadoop
+	yarn jar $HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples*.jar wordcount /test.txt /output1
+
+4. examine the result
+	hdfs dfs -cat /output1/*
+
+
+Also, try viewing the below URL's (provided tou have added the host name with appropriate IP in C:\windows\system32\etc\drivers\hosts file)
+
+http://lin1:50070/
+http://lin1:8088/
+
+-------------this completes pseudo-dist cluster.
+-------------lets now expand this to a real cluster, by adding two more slaves
+-------------since we have done all the above in a VM, we could easily copy the VM into two new so that most of the steps like java setup, hadoop setup, configurations etc... can be avoided
+---stop all processes on the VM
+---delete the directories under hdfsdata
+-------------shutdown the VM.
+
+1. choose the already configured VM and choose clone, turn on the checkbox "reinitialize MAC...", lets give the name of VM as n2
+2. choose full clone in next step
+3. repeat the above steps for as many VM's that you may want to have (provided you have enough memory on the host)
+
+Changes for n2 VM
+1. In virtual Box , select settings for n2, choose network, expand Advanced and turn "on" cable connected checkbox
+
+2. start the VM
+3. edit the file /etc/sysconfig/network and change hostname
+4. edit the file /etc/sysconfig/network-scripts/ifcfg-eth0 and delete the mac address(HWADDR) and UUID
+4. remove persist IP rules using the below command
+	rm -f /etc/udev/rules.d/70-persistent-net.rules
+5. Restart the VM
+6. Note the new IP address of the host
+
+----Repeat the above steps for all cloned VM's
+
+modify /etc/hosts "on all hosts" to include all host names and corresponding IP's of the nodes in the cluster, for example
+10.10.10.1	lin1
+10.10.10.2	lin2
+10.10.10.3	lin3
+10.10.10.4	lin4
+
+
+---verify if you can ping lin1,lin2,lin3... from the master (i.e lin1)
+
+---On the master host (lin1 in our case) modify $HADOOP_HOME/etc/hadoop/slaves and add all other node names, example my file looks like
+lin1
+lin2
+lin3
+
+---on the master, try test the seemless ssh
+ssh hdtester@lin1
+ssh hdtester@lin2
+ssh hdtester@lin3
+
+---start the processes on Master (n1)
+start-dfs.sh
+start-yarn.sh
+mr-jobhistory-daemon.sh start historyserver
+
+
+---verify if all slave processes are started automatically on lin2, lin3...
