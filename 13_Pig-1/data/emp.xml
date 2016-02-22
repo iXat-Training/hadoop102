@@ -1,0 +1,30 @@
+<List>
+	<employee>
+		<EmployeeId>4</EmployeeId>
+		<ReportsTo>1</ReportsTo>
+		<Name>Charles Madigen</Name>
+		<Job>Chief Operating Officer</Job>
+		<Phone>x10962</Phone>
+		<Email>cmadigan@server.com</Email>
+		<OrgUnit>Management</OrgUnit>
+		<Salary>26200.00</Salary>
+		<Gender>male</Gender>
+		<MaritalStatus>married</MaritalStatus>
+		<EmployeeType>full time</EmployeeType>
+		<EmployeeStatus>active</EmployeeStatus>
+	</employee>
+	<employee>
+		<EmployeeId>192</EmployeeId>
+		<ReportsTo>4</ReportsTo>
+		<Name>Ralph Brogan</Name>
+		<Job>Mgr Software Client Supp</Job>
+		<Phone>x32524</Phone>
+		<Email>rbrogan@server.com</Email>
+		<OrgUnit>Management</OrgUnit>
+		<Salary>13700.00</Salary>
+		<Gender>male</Gender>
+		<MaritalStatus>married</MaritalStatus>
+		<EmployeeType>full time</EmployeeType>
+		<EmployeeStatus>active</EmployeeStatus>
+	</employee>
+</List>
