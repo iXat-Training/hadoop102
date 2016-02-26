@@ -1,0 +1,23 @@
+Create a list of directors and all the movies directed by him/her, sample output should be as below - note that the listing is in order of movie year.
+	James Cameron The Terminator
+	James Cameron Titanic
+	...
+	...
+
+List all the directors who have also acted in any movie, also the names of the movies in which they have performed. order the movie list by the release year.
+
+-Rules
+    0. Load the data into HDFS into staging directory.
+	1. Use Hive for processing both the above use cases
+	2. we need not store and use movie description, its just a space consumer. hence get rid of the same.
+	3. organize movie data by partitions in hive, let the movie data be partitioned by year. Consider alternative ways than doing an insert to get data partitioned. An insert would be overwhelming.
+	4. The data need not be stored in JSON format in the working folder
+	5. Use JDBC to do the following
+		Find all the movies which have their director firt name and last name starting with same letter
+
+		list the number of movies a given director has directed in any year, the list of years  should be in chronological order, for example, a query for Steven Spilberg should list output as follows -
+			1975 1
+			1997 1
+
+	6.* Convert the Data into ORC format.	 	
+
