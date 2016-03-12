@@ -1,0 +1,63 @@
+<workflow-app xmlns='uri:oozie:workflow:0.1' name='pig-wf'>
+    <start to='pig1' />
+    <action name='pig1'>
+        <pig>
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>mapred.compress.map.output</name>
+                    <value>true</value>
+                </property>
+                <property>
+                  <name>mapred.job.queue.name</name>
+                  <value>unfunded</value>
+                </property>
+            </configuration>
+            <script>org/apache/oozie/examples/pig/id.pig</script>
+            <param>INPUT=input-data</param>
+            <param>OUTPUT=output-data-pig/pig-output</param>
+        </pig>
+        <ok to="end" />
+        <error to="fail" />
+    </action>
+    <kill name="fail">
+        <message>Pig failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name='end' />
+</workflow-app>
+
+
+-----With UDF
+<workflow-app xmlns='uri:oozie:workflow:0.1' name='pig-wf'>
+  <action name="pig_1">
+    <pig>
+      <job-tracker>${jobTracker}</job-tracker>
+      <name-node>${nameNode}</name-node>
+      <prepare>
+        <delete path="${nameNode}${outputDir}/pig_1" />
+      </prepare>
+       <configuration>
+          <property>
+             <name>mapred.map.output.compress</name>
+             <value>false</value>
+          </property>
+          <property>
+             <name>mapred.job.queue.name</name>
+             <value>${queueName}</value>
+          </property>
+          <!-- optional -->
+          <property>
+            <name>mapred.child.java.opts</name>
+            <value>-server -Xmx1024M -Djava.net.preferIPv4Stack=true -Dtest=QA</value>
+          </property>
+        </configuration>
+        <script>org/apache/oozie/example/pig/script.pig</script>
+        <param>INPUT=${inputDir}</param>
+        <param>OUTPUT=${outputDir}/pig_1</param>
+        <archive>archivedir/tutorial-udf.jar#udfjar</archive>
+    </pig>
+    <ok to="end" />
+    <error to="fail" />
+  </action>
+</workflow-app>

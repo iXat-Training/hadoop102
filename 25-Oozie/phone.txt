@@ -1,0 +1,9 @@
+iPhone6,Hyderabad,TS,SI,IN,2000
+iPhone6,Chennai,TN,SI,IN,1000
+iPhone6,Mumbai,MH,WI,IN,1000
+Samsung J7,Mumbai,MH,WI,IN,200
+iPhone6,Delhi,DE,NI,IN,100
+iPhone6,Kolkota,WB,EI,IN,900
+MotoG,Hyderabad,TS,SI,IN,3000
+RedMi Note4,Delhi,DE,NI,IN,1000
+Vibe K4,Kolkota,WB,EI,IN,5000
