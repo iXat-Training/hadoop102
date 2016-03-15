@@ -1,0 +1,17 @@
+{
+  "name": "node",
+  "version": "1.0.0",
+  "description": "A sample zk program which sets some random elements to /zktests znode",
+  "main": "zktest.js",
+  "dependencies": {
+    "faker": "^3.0.1",
+    "node-zookeeper-client": "^0.2.2",
+    "kafka-node":"^0.3.2"	
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "iXat (hsarma)",
+  "license": "Open for all"
+}

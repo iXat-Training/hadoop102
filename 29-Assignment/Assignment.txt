@@ -1,0 +1,60 @@
+Download enron email dataset from http://www.cs.cmu.edu/~enron/
+Import the data into MySql
+In the lab, the data is available in enron Db of IxatLabMaster
+The tables are as follows
+Employeelist
+  eid: Employee-ID
+  firstName: First name
+  lastName: Last name
+  Email_id: Email address (primary). This one can be found in the other tables/dataframes
+and is useful for matching.
+  Email2: Additional email address that was replace by the primary one.
+  Email3: See above
+  Email4: See above
+  folder: The user’s folder in the original data dump.
+  status: Last position of the employee. “N/A” are unknown.
+
+Message
+  mid: Message-ID. Refers to the rows in recipientinfo and referenceinfo.
+  sender: Email address (updated)
+  date: Date.
+  message_id: Internal message-ID from the mailserver.
+  subject: Email subject
+  body: Email body.
+  folder: Exact folder of the e-mail inclusing subfolders.
+
+Recipientinfo
+  rid: Reference-ID
+  mid: Message-ID from the message-table/-dataframe
+  rtype: Shows if the reciever got the email normally (“to”), as a carbon copy (“cc”)
+ or a blind carbon copy (“bcc”).
+  rvalue: The recipient’s email address.
+
+Referenceinfo
+  rfid: referenceinfo-ID
+  mid: Message-ID
+  reference: Contains the whole email with shortend headers
+
+
+Actions -
+  1. Import data into HDFS using Sqoop
+  2. Use Pig to do batch analytics
+	2.a Load Receipient and Message Data and perform a Join so as to represent  message_id, date, from, to, ccs, bccs, subject, body in a single record.
+	2.b Do any transformations if required (for example date conversions etc...)
+        
+        2.c Store the unified data into HDFS as sequence file using ElephantBird Pig UDF's
+  3. Schedule a MR/Pig job in Oozie to do the following, store the results into HBase
+	3.a Count of emails sent on weekdays v/s weekends
+ 	3.b Count of emails by hour
+	3.c Count of emails per month 
+  
+  4. Analyze on the fly emails and find the most commonly occuring 10 words
+	4.a Have a spark streaming application listen to Kafka Topic
+	4.b use the randomemail nodejs program to simulate a set of emails
+	4.c Store the top word list in HBase
+	4.d Store the top 10 email senders in a window of 10 minutes.
+	4.e Store the emails thus captured into HDFS (or Hive)
+	
+  5. Analyze the emails bodies and give a list of senders grouped by the number of spam emails that they might have sent. Spark is the best option to do this, check out https://github.com/holdenk/learning-spark-examples/blob/master/src/main/java/com/oreilly/learningsparkexamples/java/MLlib.java
+  6. Analyze on the fly emails for spam data, create a separate folder in HDFS for storing SPAM email.
+
